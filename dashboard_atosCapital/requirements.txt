@@ -2,3 +2,4 @@ streamlit
 plotly
 pyodbc
 polars
+dotenv
