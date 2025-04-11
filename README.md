@@ -1,6 +1,6 @@
 # 📊 Dashboard de Métricas de Banco de Dados com Streamlit
 
-Dashboard interativo para monitoramento e visualização de métricas de desempenho de bancos de dados utilizandp python, streamlit e plotly para criação dos gráficos.
+Dashboard interativo para monitoramento e visualização de métricas de desempenho de bancos de dados utilizando python, streamlit e plotly para criação dos gráficos.
 
 ## ✨ Funcionalidades
 - Visualização em tempo real de métricas
