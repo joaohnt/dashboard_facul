@@ -2,11 +2,13 @@ import streamlit as st
 import plotly.express as px
 import polars as pl
 
-def get_filiais_coordinates() -> pl.DataFrame:
+def get_filiais_coordinates(selected_filiais=None) -> pl.DataFrame:
     """
     Retorna um DataFrame contendo nome das filiais e suas coordenadas (latitude e longitude).
+    Se uma lista de filiais for passada, retorna apenas essas filiais.
     """
-    return pl.DataFrame({
+
+    filiais_data = {
         "nmFilial": [
             "FILIAL CURITIBA", "FILIAL RIO DE JANEIRO", "FILIAL FORTALEZA", "FILIAL SALVADOR",
             "FILIAL CAMPINAS", "FILIAL SÃO LUÍS", "FILIAL BRASÍLIA", "FILIAL BELÉM",
@@ -25,7 +27,17 @@ def get_filiais_coordinates() -> pl.DataFrame:
             -46.6333, -49.2643, -34.8770, -46.5333,
             -43.0634, -43.9345
         ]
-    })
+    }
+    
+ 
+    df_filiais = pl.DataFrame(filiais_data)
+    
+
+    if selected_filiais:
+        df_filiais = df_filiais.filter(df_filiais["nmFilial"].is_in(selected_filiais))
+    
+    return df_filiais
+
 
 def render_filiais_map(df_filiais: pl.DataFrame):
     """
