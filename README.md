@@ -16,8 +16,9 @@ Dashboard interativo para monitoramento e visualização de métricas de desempe
 ```bash
 git clone https://github.com/seuusuario/dashboard-streamlit-atos.git
 cd dashboard_atosCapital
+**IMPORTANTE** Criar arquivo .env para inserir as conexões com o banco, caso contrário a aplicação não funcionará.
 ```
-2.Crie e ative o ambiente virtual:
+2.Crie e ative o ambiente virtual (Opcional):
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
