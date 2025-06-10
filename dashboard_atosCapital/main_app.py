@@ -59,21 +59,60 @@ df_filtered = df.filter(
     pl.col("Mes").is_in(selected_meses) 
 )
 
-# Métricas principais
-total_vendas = df_filtered.select(pl.col("vlVenda").sum()).item()
-meta_media = df_filtered.select(pl.col("txMeta").mean()).item()
-quantidade_vendas = df_filtered.shape[0]
-ticket_medio = total_vendas / quantidade_vendas if quantidade_vendas else 0
+# Adiciona coluna de ano para facilitar os filtros e gráficos
+df_filtered = df_filtered.with_columns(
+    pl.col("dtVenda").dt.year().alias("Ano")
+)
 
-# Exibe as métricas
+# Descobre anos presentes no filtro
+anos_filtrados = sorted(df_filtered.select("Ano").unique().to_series().to_list())
+
+# Métricas principais por ano
+metricas = []
+for ano in anos_filtrados:
+    df_ano = df_filtered.filter(pl.col("Ano") == ano)
+    total_vendas = df_ano.select(pl.col("vlVenda").sum()).item()
+    meta_media = df_ano.select(pl.col("txMeta").mean()).item()
+    quantidade_vendas = df_ano.shape[0]
+    ticket_medio = total_vendas / quantidade_vendas if quantidade_vendas else 0
+    metricas.append({
+        "ano": ano,
+        "total_vendas": total_vendas,
+        "meta_media": meta_media,
+        "quantidade_vendas": quantidade_vendas,
+        "ticket_medio": ticket_medio
+    })
+
+# Exibe as métricas com indicação do ano
 st.title("📈 Dashboard de Vendas")
+colunas = st.columns(4)
+for idx, met in enumerate(metricas):
+    colunas[0].metric(f"💰 Total de Vendas ({met['ano']})", f"R$ {met['total_vendas']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    colunas[1].metric(f"🎯 Média da Meta ({met['ano']})", f"{met['meta_media']:.2f}%")
+    colunas[2].metric(f"📦 Qtde Vendas ({met['ano']})", f"{met['quantidade_vendas']}")
+    colunas[3].metric(f"🧾 Ticket Médio ({met['ano']})", f"R$ {met['ticket_medio']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+    if idx == 0 and len(metricas) > 1:
+        colunas = st.columns(4)  # Nova linha para o próximo ano
 
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("💰 Total de Vendas", f"R$ {total_vendas:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-col2.metric("🎯 Média da Meta", f"{meta_media:.2f}%")
-col3.metric("📦 Quantidade de Vendas", f"{quantidade_vendas}")
-col4.metric("🧾 Ticket Médio", f"R$ {ticket_medio:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
-
+# Gráfico de vendas por mês comparando anos
+st.subheader("📊 Vendas por Mês - Comparativo 2024 x 2025")
+df_mes_ano = (
+    df_filtered
+    .group_by(["Ano", "Mes"])
+    .agg(pl.col("vlVenda").sum().alias("venda_total"))
+    .sort(["Ano", "Mes"])
+    .to_pandas()
+)
+fig_comparativo = px.bar(
+    df_mes_ano,
+    x="Mes",
+    y="venda_total",
+    color="Ano",
+    barmode="group",
+    title="Total de Vendas por Mês - Comparativo 2024 x 2025",
+    labels={"Mes": "Mês", "venda_total": "Total Vendido (R$)", "Ano": "Ano"}
+)
+st.plotly_chart(fig_comparativo, use_container_width=True)
 
 # Gráfico de vendas por mês - 2024
 st.subheader("📊 Vendas por Mês - 2024")
